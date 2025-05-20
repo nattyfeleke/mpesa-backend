@@ -1,0 +1,79 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+model User {
+  id                     String     @id @default(uuid())
+  email                  String     @unique
+  fullName               String?
+  firstName              String
+  lastName               String
+  phoneNumber            String?
+  password               String
+  avatar                 String?
+  passwordResetToken     String?
+  passwordResetExpiresIn DateTime?
+  createdAt              DateTime   @default(now()) @map("created_at")
+  updatedAt              DateTime   @updatedAt @map("updated_at")
+}
+
+model Bank {
+  id        Int       @id @default(autoincrement())
+  value     String
+  branches  Branch[]
+  applications Application[]
+  
+  @@map("tbl_bank")
+}
+
+model Branch {
+  id      Int       @id @default(autoincrement())
+  value   String
+  bank    Bank      @relation(fields: [bankId], references: [id])
+  bankId  Int       @map("bank_id")
+  applications Application[]
+  
+  @@map("tbl_branch")
+}
+
+model Application {
+  id             Int       @id @default(autoincrement())
+  bankName       String    @map("bank_name")
+  branchName     String    @map("branch_name")
+  accountName    String    @map("account_name")
+  accountNumber  String    @unique @map("account_number")
+  status         Status    @default(Draft)
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+  bank           Bank      @relation(fields: [bankId], references: [id])
+  bankId         Int       @map("bank_id")
+  branch         Branch    @relation(fields: [branchId], references: [id])
+  branchId       Int       @map("branch_id")
+  
+  @@map("tbl_application")
+}
+
+model TransactionHistory {
+  id            Int       @id @default(autoincrement())
+  value         String
+    transactionId String    @unique @map("transaction_id")
+  status        String
+  createdAt     DateTime  @default(now()) @map("created_at")
+  
+  @@map("tbl_transacion_history")
+}
+
+enum Status {
+  Draft
+  Submitted
+}
